@@ -9,21 +9,19 @@
 #define FIRST_Y SCALE
 #define LAST_Y SCREEN_HEIGHT - SCALE
 
-#define RULES_NUMBER 5
-
-enum PAL {
-    PAL_DEAD,
-    PAL_ALIVE,
-    PAL_TEXT,
-    PAL_TEXT_BG
-};
+#define RULES_NUMBER 10
 
 enum RULES {
     LIFE,
     HIGHLIFE,
     PEDESTRIANLIFE,
     GEOLOGY,
-    DIAMOEBA
+    DIAMOEBA,
+    HOLSTEIN,
+    CORAL,
+    VOTE,
+    LANDRUSH,
+    MAZECTRIC
 };
 
 char* rules_names[] = {
@@ -31,7 +29,19 @@ char* rules_names[] = {
     "HighLife",
     "Pedestrian Life",
     "Geology",
-    "Diamoeba"
+    "Diamoeba",
+    "Holstein",
+    "Coral",
+    "Vote",
+    "Land Rush",
+    "Mazectric"
+};
+
+enum PAL {
+    PAL_DEAD,
+    PAL_ALIVE,
+    PAL_TEXT,
+    PAL_TEXT_BG
 };
 
 int rule = LIFE;
@@ -146,12 +156,12 @@ int main() {
     pal_bg_mem[PAL_TEXT] = CLR_BLACK;
     pal_bg_mem[PAL_TEXT_BG] = CLR_WHITE;
 
-    int count = 0;
+    int n = 0; // neighbors
 
     int count_topmidbot_left = 0;
     int count_topbot_center = 0;
     int count_topbot_right = 0;
-    int count_middle_center = 0;
+    int alive = 0;  // count_middle_center
     int count_middle_right = 0;
 
     bool draw_cell;
@@ -172,7 +182,7 @@ int main() {
             count_topmidbot_left = 0; // leftmost column is always dead
 
             if (display_page[iy - SCALE][SCALE]) { count_topbot_center = 1; } else { count_topbot_center = 0; } // top center
-            if (display_page[iy        ][SCALE]) { count_middle_center = 1; } else { count_middle_center = 0; } // middle center
+            if (display_page[iy        ][SCALE]) { alive = 1; } else { alive = 0; } // middle center
             if (display_page[iy + SCALE][SCALE]) { count_topbot_center++; } // bottom center
 
             for (ix = FIRST_X; ix < LAST_X; ix += SCALE)
@@ -182,23 +192,39 @@ int main() {
                 if (display_page[iy        ][ix + SCALE]) { count_middle_right = 1; } else { count_middle_right = 0; } // middle right
                 if (display_page[iy + SCALE][ix + SCALE]) { count_topbot_right++; } // bottom right
 
-                count = count_topbot_center + count_topmidbot_left + count_topbot_right + count_middle_right;
+                n = count_topbot_center + count_topmidbot_left + count_topbot_right + count_middle_right;
 
                 switch (rule) {
-                    case LIFE:              draw_cell = (count == 3) || (count == 2 && count_middle_center);
+                    case LIFE:              draw_cell = (n == 3) || (n == 2 && alive);
                         break;
 
-                    case HIGHLIFE:          draw_cell = (count == 3) || (count == 2 && count_middle_center) || (count == 6 && !count_middle_center);
+                    case HIGHLIFE:          draw_cell = (n == 3) || (n == 2 && alive) || (n == 6 && !alive);
                         break;
 
-                    case PEDESTRIANLIFE:    draw_cell = (count == 3) || (count == 2 && count_middle_center) || (count == 8 && !count_middle_center);
+                    case PEDESTRIANLIFE:    draw_cell = (n == 3) || (n == 2 && alive) || (n == 8 && !alive);
                         break;
 
-                    case GEOLOGY:           draw_cell = (count > 6) || ((count == 3 || count == 5) && !count_middle_center) || ((count == 2 || count == 4 || count == 6) && count_middle_center);
+                    case GEOLOGY:           draw_cell = (n > 6) || ((n == 3 || n == 5) && !alive) || ((n == 2 || n == 4 || n == 6) && alive);
                         break;
 
-                    case DIAMOEBA:          draw_cell = (count > 4) || (count == 3 && !count_middle_center);
+                    case DIAMOEBA:          draw_cell = (n > 4) || (n == 3 && !alive);
                         break;
+
+                    case HOLSTEIN:          draw_cell = (n > 5) || ((n == 3 || n == 5) && !alive) || (n == 4 && alive);
+                        break;
+
+                    case CORAL:             draw_cell = (n == 3 && !alive) || (n > 3 && alive);
+                        break;
+
+                    case VOTE:              draw_cell = (n > 4) || (n == 4 && alive);
+                        break;
+
+                    case LANDRUSH:          draw_cell = (n == 3) || (n == 5) || (n > 1 && n != 6 && alive);
+                        break;
+
+                    case MAZECTRIC:          draw_cell = (n == 3) || (n < 5 && n && alive);
+                        break;
+                    
 
                     default: draw_cell = false;
                 }
@@ -207,9 +233,9 @@ int main() {
                     draw(iy, ix, PAL_ALIVE);
                 }
 
-                count_topmidbot_left = count_topbot_center + count_middle_center;
+                count_topmidbot_left = count_topbot_center + alive;
                 count_topbot_center = count_topbot_right;
-                count_middle_center = count_middle_right;
+                alive = count_middle_right;
             }
         }
 
@@ -236,7 +262,7 @@ int main() {
 
                 init();
             }
-            if (key_hit(KEY_SELECT)) {
+            if (key_hit(KEY_A)) {
                 init();
             }
         }
