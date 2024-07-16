@@ -151,6 +151,8 @@ int main() {
 
     REG_DISPCNT = DCNT_BG2 | DCNT_MODE4;
 
+    COLOR pal_tmp;
+
     pal_bg_mem[PAL_DEAD] = CLR_CREAM; // dead
     pal_bg_mem[PAL_ALIVE] = CLR_DEAD; // alive
     pal_bg_mem[PAL_TEXT] = CLR_BLACK;
@@ -216,7 +218,7 @@ int main() {
                     case CORAL:             draw_cell = (n == 3 && !alive) || (n > 3 && alive);
                         break;
 
-                    case VOTE:              draw_cell = (n > 4) || (n == 4 && alive);
+                    case VOTE:              draw_cell = (n + alive) > 4;
                         break;
 
                     case LANDRUSH:          draw_cell = (n == 3) || (n == 5) || (n > 1 && n != 6 && alive);
@@ -240,6 +242,8 @@ int main() {
         }
 
         key_poll();
+
+        vid_vsync();
 
         if (key_curr_state()) {
             if (key_hit(KEY_START)) {
@@ -265,9 +269,13 @@ int main() {
             if (key_hit(KEY_A)) {
                 init();
             }
+            if (key_hit(KEY_B)) {
+                pal_tmp = pal_bg_mem[PAL_DEAD];
+                pal_bg_mem[PAL_DEAD] = pal_bg_mem[PAL_ALIVE];
+                pal_bg_mem[PAL_ALIVE] = pal_tmp;
+            }
         }
 
-        vid_vsync();
         save_and_flip();
     }
 
