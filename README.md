@@ -15,4 +15,5 @@
 ## Usage
 * **Left/Right** to select rule
 * **A** to reshuffle cells
+* **B** to switch colors
 * **Start** to pause

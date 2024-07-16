@@ -38,7 +38,7 @@ char* rules_names[] = {
 };
 
 enum PAL {
-    PAL_DEAD,
+    PAL_DEAD=0,
     PAL_ALIVE,
     PAL_TEXT,
     PAL_TEXT_BG
@@ -227,7 +227,6 @@ int main() {
                     case MAZECTRIC:          draw_cell = (n == 3) || (n < 5 && n && alive);
                         break;
                     
-
                     default: draw_cell = false;
                 }
 
